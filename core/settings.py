@@ -38,7 +38,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     # costume apps
-
+    'mptt',
+    'django_mptt_admin',
     #my apps
     'apps.accounts.apps.AccountsConfig',
     'apps.shops.apps.ShopsConfig',
