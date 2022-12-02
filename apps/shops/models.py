@@ -5,10 +5,14 @@ from mptt.models import MPTTModel
 
 
 class Category(MPTTModel):
+    class_category = (
+        ()
+    )
     title = models.CharField(max_length=50, unique=True, verbose_name='Название')
     parent = TreeForeignKey('self', on_delete=models.PROTECT, null=True, blank=True, related_name='children',
                             db_index=True, verbose_name='Родительская категория')
     slug = models.SlugField()
+    top = models.BooleanField(verbose_name='Активность', null=True, blank=True, default=None, unique=True)
 
     class MPTTMeta:
         order_insertion_by = ['title']
@@ -20,6 +24,11 @@ class Category(MPTTModel):
 
     def get_absolute_url(self):
         return reverse('post-by-category', args=[str(self.slug)])
+
+    def save(self, *args, **kwargs):
+        if self.top is False:
+            self.isActive = None
+        super(Category, self).save(*args, **kwargs)
 
     def __str__(self):
         return self.title
