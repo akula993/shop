@@ -15,7 +15,7 @@
                     <ul>
                                             <li class="active"><a href="./index.html">Home</a></li>
 
-                        {% recursetree categorys %}
+                        {% recursetree category %}
                             <li><a href="#">{{ node.title }}</a>
                                 {% if not node.is_leaf_node %}
                                 <ul class="dropdown">

@@ -1,3 +1,4 @@
+import uuid
 from django.db import models
 from django.urls import reverse
 from mptt.fields import TreeForeignKey
@@ -5,27 +6,14 @@ from mptt.models import MPTTModel
 
 
 class Category(MPTTModel):
-    Top_choices = (
-        (False, 'Нет'),
-        (True, 'Да'),
-    )
-    Status = (
-        ('True', 'True'),
-        ('False', 'False'),
-    )
-
-    bool_choices = (
-        (True, 'Yes'),
-        (False, 'No'),
-    )
     parent = TreeForeignKey('self', on_delete=models.PROTECT, null=True, blank=True, related_name='children',
                             db_index=True, verbose_name='Родительская категория')
-    title = models.CharField(max_length=50, unique=True, verbose_name='Название')
-    slug = models.SlugField()
-    top = models.BooleanField(verbose_name='Главное', null=True, blank=True, default=False, choices=Top_choices)
+    title = models.CharField(max_length=50, verbose_name='Название', null=True)
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    slug = models.SlugField(unique=True)
     description = models.TextField(null=True, blank=True)
-    status = models.CharField(max_length=10, choices=Status, null=True, blank=True)
-    is_active = models.BooleanField(choices=bool_choices, null=True, blank=True)
+    # status = models.CharField(max_length=10, choices=Status, null=True, blank=True)
+    is_active = models.BooleanField(default=False)
     meta_keywords = models.CharField(max_length=255, null=True, blank=True)
     meta_description = models.CharField(max_length=255, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
@@ -33,12 +21,12 @@ class Category(MPTTModel):
     image = models.ImageField(blank=True, upload_to='images/', null=True)
 
     class MPTTMeta:
+        level_attr = 'mptt_level'
         order_insertion_by = ['title']
 
     class Meta:
         db_table = 'categories'
-
-        unique_together = [['parent', 'slug']]
+        unique_together = [['parent', 'uuid']]
         verbose_name = 'Категория'
         verbose_name_plural = 'Категории'
 
@@ -46,14 +34,20 @@ class Category(MPTTModel):
         return reverse('category_detail', args=[str(self.slug)])
 
     def save(self, *args, **kwargs):
-        if self.top is False:
+        if self.is_active is False:
             self.isActive = False
-        elif self.top is True:
-            self.isActive = True
+        # elif self.is_active. <= 1:
+        #     self.isActive = True
+        else:
+            self.isActive = False
+
         super(Category, self).save(*args, **kwargs)
+
 
     def __str__(self):
         return self.title
+
+
 # class Category(models.Model):
 #     name = models.CharField(max_length=150, verbose_name='Название')
 #     slug = models.SlugField(verbose_name='URL', unique=True)
