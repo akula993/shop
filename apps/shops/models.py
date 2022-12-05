@@ -5,29 +5,51 @@ from mptt.models import MPTTModel
 
 
 class Category(MPTTModel):
-    class_category = (
-        ()
+    Top_choices = (
+        (False, 'Нет'),
+        (True, 'Да'),
     )
-    title = models.CharField(max_length=50, unique=True, verbose_name='Название')
+    Status = (
+        ('True', 'True'),
+        ('False', 'False'),
+    )
+
+    bool_choices = (
+        (True, 'Yes'),
+        (False, 'No'),
+    )
     parent = TreeForeignKey('self', on_delete=models.PROTECT, null=True, blank=True, related_name='children',
                             db_index=True, verbose_name='Родительская категория')
+    title = models.CharField(max_length=50, unique=True, verbose_name='Название')
     slug = models.SlugField()
-    top = models.BooleanField(verbose_name='Активность', null=True, blank=True, default=None, unique=True)
+    top = models.BooleanField(verbose_name='Главное', null=True, blank=True, default=False, choices=Top_choices)
+    description = models.TextField(null=True, blank=True)
+    status = models.CharField(max_length=10, choices=Status, null=True, blank=True)
+    is_active = models.BooleanField(choices=bool_choices, null=True, blank=True)
+    meta_keywords = models.CharField(max_length=255, null=True, blank=True)
+    meta_description = models.CharField(max_length=255, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
+    image = models.ImageField(blank=True, upload_to='images/', null=True)
 
     class MPTTMeta:
         order_insertion_by = ['title']
 
     class Meta:
+        db_table = 'categories'
+
         unique_together = [['parent', 'slug']]
         verbose_name = 'Категория'
         verbose_name_plural = 'Категории'
 
     def get_absolute_url(self):
-        return reverse('post-by-category', args=[str(self.slug)])
+        return reverse('category_detail', args=[str(self.slug)])
 
     def save(self, *args, **kwargs):
         if self.top is False:
-            self.isActive = None
+            self.isActive = False
+        elif self.top is True:
+            self.isActive = True
         super(Category, self).save(*args, **kwargs)
 
     def __str__(self):

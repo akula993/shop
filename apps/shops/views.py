@@ -6,10 +6,13 @@ from apps.shops.models import Category
 
 def home(request):
     categorys = Category.objects.all()
-    cl = Category.objects.filter(top='True')
+    category = categorys.get_descendants(include_self=True)
+    categorys_true = Category.objects.filter(top='True')
+    categorys_false = Category.objects.filter(top='False')
     context = {
         'categorys': categorys,
-        'cl': cl,
+        'categorys_true': categorys_true,
+        'categorys_false': categorys_false,
     }
     return render(request, 'shop/index.html', context)
 
